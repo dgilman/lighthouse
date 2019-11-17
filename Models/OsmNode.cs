@@ -12,8 +12,8 @@ namespace lighthouse.Models
 
         public long OsmNodeId { get; set; }
         public long OsmId { get; set; }
-        public double Lat { get; set; }
-        public double Lon { get; set; }
+        public string Lat { get; set; }
+        public string Lon { get; set; }
         public long Version { get; set; }
 
         public virtual Link Link { get; set; }

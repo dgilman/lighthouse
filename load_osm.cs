@@ -33,10 +33,10 @@ namespace lighthouse
         void load_seamark(dbContext db, OsmSharp.Node seamark)
         {
             var db_node = new lighthouse.Models.OsmNode();
-            db_node.OsmId = seamark.Id ?? throw new Exception("OSM id is somehow null");
-            db_node.Lat = seamark.Latitude ?? throw new Exception($"Node {db_node.OsmId} has null latitude");
-            db_node.Lon = seamark.Longitude ?? throw new Exception($"Node {db_node.OsmId} has null longitude");
-            db_node.Version = seamark.Version ?? throw new Exception($"Node {db_node.OsmId} has null version");
+            db_node.OsmId = seamark?.Id ?? throw new Exception("OSM id is somehow null");
+            db_node.Lat = $"{seamark?.Latitude}" ?? throw new Exception($"Node {db_node.OsmId} has null latitude");
+            db_node.Lon = $"{seamark?.Longitude}" ?? throw new Exception($"Node {db_node.OsmId} has null longitude");
+            db_node.Version = seamark?.Version ?? throw new Exception($"Node {db_node.OsmId} has null version");
 
             db.Add(db_node);
 
