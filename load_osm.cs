@@ -2,6 +2,8 @@ using System.IO;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Data;
+using Microsoft.EntityFrameworkCore;
 
 using OsmSharp;
 using OsmSharp.Streams;
@@ -24,57 +26,44 @@ namespace lighthouse
                         continue;
                     }
                     var node = (OsmSharp.Node)obj;
-                    foreach (var tag in node.Tags)
-                    {
-                        if (tag.Key.StartsWith("seamark"))
-                        {
-                            yield return node;
-                            break;
-                        }
-                    }
+                    yield return node;
                 }
             }
         }
         void load_seamark(dbContext db, OsmSharp.Node seamark)
         {
-            var db_node = new lighthouse.Models.Node();
-            db_node.OsmId = seamark.Id ?? throw new SystemException("OSM id is somehow null");
-            db_node.Lat = seamark.Latitude ?? throw new SystemException(String.Format("Node {0} has null latitude", db_node.OsmId));
-            db_node.Lon = seamark.Longitude ?? throw new SystemException(String.Format("Node {0} has null longitude", db_node.OsmId));
+            var db_node = new lighthouse.Models.OsmNode();
+            db_node.OsmId = seamark.Id ?? throw new Exception("OSM id is somehow null");
+            db_node.Lat = seamark.Latitude ?? throw new Exception($"Node {db_node.OsmId} has null latitude");
+            db_node.Lon = seamark.Longitude ?? throw new Exception($"Node {db_node.OsmId} has null longitude");
+            db_node.Version = seamark.Version ?? throw new Exception($"Node {db_node.OsmId} has null version");
+
+            db.Add(db_node);
 
             foreach (var pb_tag in seamark.Tags)
             {
-                var db_tag_key = db.TagKey.Where(tk => tk.TagKey1 == pb_tag.Key).FirstOrDefault();
-                if (db_tag_key is null)
-                {
-                    db_tag_key = new lighthouse.Models.TagKey();
-                    db_tag_key.TagKey1 = pb_tag.Key;
-                    db.Add(db_tag_key);
-                }
-
-                var db_tag = new lighthouse.Models.Tag();
-                db_tag.Node = db_node;
+                var db_tag_key = lighthouse.Models.TagKey.upsert_tag_key(db, pb_tag.Key);
+                var db_tag = new lighthouse.Models.OsmTag();
+                db_tag.OsmNode = db_node;
                 db_tag.TagKey = db_tag_key;
                 db_tag.Value = pb_tag.Value;
                 db.Add(db_tag);
             }
-            db.Add(db_node);
         }
         public int begin(string input_pbf, string db_path)
         {
             using (var db = new dbContext(db_path))
             {
-                var seamark_idx = 0;
-                foreach (var seamark in GetSeamarks(input_pbf))
+                using (var txn = db.Database.BeginTransaction(IsolationLevel.Serializable))
                 {
-                    if (seamark_idx != 0 && seamark_idx % 10000 == 0)
+                    // XXX truncate osm tag and node tables?
+                    foreach (var seamark in GetSeamarks(input_pbf))
                     {
-                        Console.WriteLine(String.Format("Inserting seamark {0}", seamark_idx));
+                        load_seamark(db, seamark);
                     }
-                    load_seamark(db, seamark);
-                    seamark_idx++;
+                    db.SaveChanges();
+                    txn.Commit();
                 }
-                db.SaveChanges();
             }
             return 0;
         }

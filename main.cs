@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CommandLine;
 
 namespace lighthouse
@@ -7,13 +8,17 @@ namespace lighthouse
     class LoadOSMOptions
     {
         [Option('i', "input", Required = true, HelpText = "Input OSM PBF file")]
-        public string InputPBF {get; set;}
+        public string input_pbf {get; set;}
         [Option('d', "db", Required = true, HelpText = "Path to sqlite3 db")]
-        public string DbPath {get; set;}
+        public string db_path {get; set;}
     }
     [Verb("loadlol", HelpText = "Load list of lights files into db")]
     class LoadLOLOptions
     {
+        [Option('i', "input", Required = true, HelpText = "Input LoL XML files")]
+        public IEnumerable<string> input_lols {get; set;}
+        [Option('d', "db", Required = true, HelpText = "Path to sqlite3 db")]
+        public string db_path {get; set;}
 
     }
 
@@ -41,12 +46,13 @@ namespace lighthouse
         static int RunLoadOSM(LoadOSMOptions opts)
         {
             var load_osm = new LoadOSM();
-            return load_osm.begin(opts.InputPBF, opts.DbPath);
+            return load_osm.begin(opts.input_pbf, opts.db_path);
         }
 
         static int RunLoadLOL(LoadLOLOptions opts)
         {
-            return 0;
+            var load_lol = new LoadLOL();
+            return load_lol.begin(opts.input_lols, opts.db_path);
         }
 
         static int RunLink(LinkOptions opts)

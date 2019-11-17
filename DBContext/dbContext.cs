@@ -30,7 +30,7 @@ namespace lighthouse.DBContext
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlite(String.Format("Data Source={0}", db_path));
+                optionsBuilder.UseSqlite($"Data Source={db_path}");
             }
         }
 
