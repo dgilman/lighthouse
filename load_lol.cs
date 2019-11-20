@@ -5,10 +5,6 @@ using System.Globalization;
 using System;
 using System.Text.RegularExpressions;
 using System.Data;
-using Microsoft.EntityFrameworkCore;
-
-using lighthouse.DBContext;
-using lighthouse.Models;
 
 namespace lighthouse
 {

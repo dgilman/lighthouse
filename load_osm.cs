@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Data;
-using Microsoft.EntityFrameworkCore;
 
 using OsmSharp;
 using OsmSharp.Streams;
 
-using lighthouse.DBContext;
 
 namespace lighthouse
 {
