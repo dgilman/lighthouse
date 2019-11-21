@@ -53,7 +53,7 @@ CREATE TABLE lol_tag (
 CREATE TABLE link (
     link_id INTEGER PRIMARY KEY,
     osm_node_id INTEGER NOT NULL UNIQUE,
-    lol_node_id INTEGER NOT NULL UNIQUE
+    lol_node_id INTEGER NOT NULL UNIQUE,
 
     FOREIGN KEY (osm_node_id) REFERENCES osm_node (osm_node_id),
     FOREIGN KEY (lol_node_id) REFERENCES lol_node (lol_node_id)
