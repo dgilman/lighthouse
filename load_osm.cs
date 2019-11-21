@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 using OsmSharp;
 using OsmSharp.Streams;
@@ -14,6 +16,8 @@ namespace lighthouse
     {
         IEnumerable<OsmSharp.Node> GetSeamarks(string planet_path)
         {
+            var st = new Stopwatch();
+            st.Start();
             using (var fileStream = new FileInfo(planet_path).OpenRead())
             {
                 var source = new PBFOsmStreamSource(fileStream);
@@ -24,9 +28,14 @@ namespace lighthouse
                         continue;
                     }
                     var node = (OsmSharp.Node)obj;
+                    st.Stop();
                     yield return node;
+                    st.Start();
                 }
             }
+            st.Stop();
+            var ts = st.Elapsed;
+            Console.WriteLine(String.Format("{0:00}:{1:00}:{2:00}.{3:00}", ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10));
         }
         void load_seamark(dbContext db, OsmSharp.Node seamark)
         {
