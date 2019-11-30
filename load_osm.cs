@@ -1,6 +1,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Data;
 
@@ -28,41 +29,41 @@ namespace lighthouse
                 }
             }
         }
-        void load_seamark(dbContext db, OsmSharp.Node seamark)
+        void load_seamark(Storage db, OsmSharp.Node seamark)
         {
-            var db_node = new lighthouse.Models.OsmNode();
-            db_node.OsmId = seamark?.Id ?? throw new Exception("OSM id is somehow null");
-            db_node.Lat = $"{seamark?.Latitude}" ?? throw new Exception($"Node {db_node.OsmId} has null latitude");
-            db_node.Lon = $"{seamark?.Longitude}" ?? throw new Exception($"Node {db_node.OsmId} has null longitude");
-            db_node.Version = seamark?.Version ?? throw new Exception($"Node {db_node.OsmId} has null version");
+            var OsmId = seamark?.Id ?? throw new Exception("OSM id is somehow null");
 
-            db.Add(db_node);
+            var LatStr = $"{seamark?.Latitude}" ?? throw new Exception($"Node {OsmId} has null latitude");
+            var LonStr = $"{seamark?.Longitude}" ?? throw new Exception($"Node {OsmId} has null longitude");
+            double Lat;
+            double Lon;
+            if (!double.TryParse(LatStr, out Lat))
+            {
+                throw new Exception($"Node {OsmId} could not parse Lat {LatStr}");
+            }
+            if (!double.TryParse(LonStr, out Lon))
+            {
+                throw new Exception($"Node {OsmId} could not parse Lon {LonStr}");
+            }
+            var Version = seamark?.Version ?? throw new Exception($"Node {OsmId} has null version");
+
+            var OsmNodeId = db.StoreOsmNode(OsmId, LatStr, LonStr, Lat, Lon, Version);
 
             foreach (var pb_tag in seamark.Tags)
             {
-                var db_tag_key = lighthouse.Models.TagKey.upsert_tag_key(db, pb_tag.Key);
-                var db_tag = new lighthouse.Models.OsmTag();
-                db_tag.OsmNode = db_node;
-                db_tag.TagKey = db_tag_key;
-                db_tag.Value = pb_tag.Value;
-                db.Add(db_tag);
+                var TagKeyId = db.StoreTagKey(pb_tag.Key);
+                db.StoreOsmTag(OsmNodeId, TagKeyId, pb_tag.Value);
             }
         }
-        public int begin(string input_pbf, string db_path)
+        public int begin(string pbfPath, string dbPath)
         {
-            using (var db = new dbContext(db_path))
+            var StorageFactory = new StorageFactory();
+            var db = StorageFactory.Create(dbPath);
+            foreach (var seamark in GetSeamarks(pbfPath))
             {
-                using (var txn = db.Database.BeginTransaction(IsolationLevel.Serializable))
-                {
-                    // XXX truncate osm tag and node tables?
-                    foreach (var seamark in GetSeamarks(input_pbf))
-                    {
-                        load_seamark(db, seamark);
-                    }
-                    db.SaveChanges();
-                    txn.Commit();
-                }
+                load_seamark(db, seamark);
             }
+            db.DisposeConnection();
             return 0;
         }
     }

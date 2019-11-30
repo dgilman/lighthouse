@@ -27,6 +27,7 @@ namespace lighthouse
 
     }
 
+    /*
     class LoadLOL
     {
         private static Regex volume_matcher = new Regex(@"PUB (\d+)");
@@ -234,6 +235,7 @@ namespace lighthouse
                     - DONE radar_transponder:period
                 - fog_signal:category
             */
+            /*
             var xml_characteristic_props = xml_characteristic.Elements("Characteristic")?.FirstOrDefault()
                 ?? throw new LightException("Unable to extract Characteristic element from Characteristic_Element");
             var character_type = parse_character_type(light_data, xml_characteristic_props);
@@ -327,4 +329,5 @@ namespace lighthouse
             return 0;
         }
     }
+    */
 }

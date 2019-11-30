@@ -51,8 +51,9 @@ namespace lighthouse
 
         static int RunLoadLOL(LoadLOLOptions opts)
         {
-            var load_lol = new LoadLOL();
-            return load_lol.begin(opts.input_lols, opts.db_path);
+            //var load_lol = new LoadLOL();
+            //return load_lol.begin(opts.input_lols, opts.db_path);
+            return 0;
         }
 
         static int RunLink(LinkOptions opts)
